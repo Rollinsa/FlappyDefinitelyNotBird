@@ -1,14 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class DefinitelyNotBirdMovement : MonoBehaviour
 {
     private Rigidbody2D body;
+    private Animator anim;
+    [SerializeField] private GameObject notBird;
     [SerializeField] private float initialHorizontalSpeed;
     [SerializeField] private float flapSpeed;
     [SerializeField] private float deathFallSpeed;
     [SerializeField] private float birdyGravity;
+    [SerializeField] private Text gameOver;
     private float startDelay;
 
     private bool didSetBirdyGravity;
@@ -18,7 +22,9 @@ public class DefinitelyNotBirdMovement : MonoBehaviour
     void Awake()
     {
         body = GetComponent<Rigidbody2D>();
+        anim = notBird.GetComponent<Animator>();
         startDelay = FindObjectOfType<Countdown>().getStartDelay();
+        gameOver.enabled = false;
     }
 
     void Start()
@@ -52,13 +58,17 @@ public class DefinitelyNotBirdMovement : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // if (collision.gameObject.tag == "Ground")
-        // {
-        //     grounded = true;
-        // }
-
         dead = true;
         body.velocity = new Vector2(0, 0);
+        anim.SetTrigger("dead");
         body.gravityScale = deathFallSpeed;
+        transform.Rotate(180.0f, 0f, 0f, Space.World);
+
+        GameOver();
+    }
+
+    private void GameOver()
+    {
+        gameOver.enabled = true;
     }
 }
