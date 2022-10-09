@@ -8,12 +8,17 @@ public class DefinitelyNotBirdMovement : MonoBehaviour
     [SerializeField] private float initialHorizontalSpeed;
     [SerializeField] private float flapSpeed;
     [SerializeField] private float deathFallSpeed;
+    [SerializeField] private float birdyGravity;
+    private float startDelay;
+
+    private bool didSetBirdyGravity;
 
     private bool dead;
 
     void Awake()
     {
         body = GetComponent<Rigidbody2D>();
+        startDelay = FindObjectOfType<Countdown>().getStartDelay();
     }
 
     void Start()
@@ -28,10 +33,20 @@ public class DefinitelyNotBirdMovement : MonoBehaviour
             return;
         }
 
-        body.velocity = new Vector2(body.velocity.x, 0);
+        if (!didSetBirdyGravity)
+        {
+            if (Time.time > startDelay)
+            {
+                body.gravityScale = birdyGravity;
+                didSetBirdyGravity = true;
+            }
+            return;
+        }
+
+        // body.velocity = new Vector2(body.velocity.x, 0);
         if (Input.GetKey(KeyCode.Space) || (Input.GetMouseButton(0)))
         {
-            body.velocity = new Vector2(body.velocity.x, body.velocity.y + flapSpeed);
+            body.velocity = new Vector2(body.velocity.x, flapSpeed);
         }
     }
 
