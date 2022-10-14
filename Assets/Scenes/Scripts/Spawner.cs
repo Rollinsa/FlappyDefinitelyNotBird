@@ -10,7 +10,11 @@ public class Spawner : MonoBehaviour
     [SerializeField] public float maxHeight;
     [SerializeField] public float minHeight;
     [SerializeField] public float startingX;
-    public GameObject[] spawnedObjects;
+    [SerializeField] public float spawnDistance;
+    [SerializeField] public float minDistanceBetween;
+    [SerializeField] public float maxDistanceBetween;
+    [SerializeField] public GameObject notBird;
+    public List<GameObject> spawnedObjects;
 
     private float maxSpawnLocation;
     private float minSpawnLocation;
@@ -37,10 +41,15 @@ public class Spawner : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (false)
+        // Create next wall once we're close enough to prev wall
+        // Creating this next wall should set a new prev wall, so the next check won't pass and will wait until we're closer as well
+        if ((prevWall.transform.position.x - notBird.transform.position.x) < spawnDistance)
         {
-            Instantiate(objectToSpawn, transform.position, transform.rotation);
+            // TODO: distance between should really be based off of the height of each one
+            createWall(prevWall.transform.position.x + Random.Range(minDistanceBetween, maxDistanceBetween));
         }
+
+        destroyWalls();
     }
 
     GameObject createWall(float xPos)
@@ -48,21 +57,43 @@ public class Spawner : MonoBehaviour
         GameObject clonedWall = getWallClone(xPos);
         clonedWall.SetActive(true);
         prevWall = clonedWall;
+        spawnedObjects.Add(clonedWall);
         return clonedWall;
     }
 
     GameObject getWallClone(float xPos)
     {
         GameObject clonedWall = Instantiate(objectToSpawn, transform.position, transform.rotation);
+        // TODO: Height randomization should depend on the previous wall, so that they overlap at least a little bit every time, but not too much
         float randomHeight = Random.Range(minHeight, maxHeight);
         clonedWall.transform.localScale = new Vector3(objectToSpawn.transform.localScale.x, randomHeight, 1);
-        clonedWall.transform.position = new Vector3(xPos, getYForWall(clonedWall), -1);
+        if (nextIsFloor)
+        {
+            clonedWall.transform.position = new Vector3(xPos, getYForFloorWall(clonedWall), -1);
+        }
+        else
+        {
+            clonedWall.transform.position = new Vector3(xPos, getYForCeilingWall(clonedWall), -1);
+        }
+        nextIsFloor = !nextIsFloor;
         return clonedWall;
     }
 
-    // Get the Y location for the wall
-    float getYForWall(GameObject wall)
+    // Get the Y location for the wall if it's coming from the floor
+    float getYForFloorWall(GameObject wall)
+    {
+        return minSpawnLocation + (wall.transform.localScale.y / 2);
+    }
+
+    // Get the Y location for the wall if it's coming from the ceiling
+    float getYForCeilingWall(GameObject wall)
     {
         return maxSpawnLocation - (wall.transform.localScale.y / 2);
+    }
+
+    void destroyWalls()
+    {
+        // TODO: Destroy walls that are far enough away that they don't matter anymore
+
     }
 }
