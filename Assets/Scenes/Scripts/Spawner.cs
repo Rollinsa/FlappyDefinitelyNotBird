@@ -22,6 +22,8 @@ public class Spawner : MonoBehaviour
     private bool nextIsFloor;
 
     private GameObject prevWall;
+    private Queue<GameObject> upcomingWalls;
+    private int wallsPassed;
 
     void Awake()
     {
@@ -33,6 +35,8 @@ public class Spawner : MonoBehaviour
         print(maxSpawnLocation);
         print("min spawn location");
         print(minSpawnLocation);
+
+        upcomingWalls = new Queue<GameObject>();
 
         // First Wall
         createWall(startingX);
@@ -49,6 +53,8 @@ public class Spawner : MonoBehaviour
             createWall(prevWall.transform.position.x + Random.Range(minDistanceBetween, maxDistanceBetween));
         }
 
+        checkPassedWall();
+
         destroyWalls();
     }
 
@@ -57,6 +63,7 @@ public class Spawner : MonoBehaviour
         GameObject clonedWall = getWallClone(xPos);
         clonedWall.SetActive(true);
         prevWall = clonedWall;
+        upcomingWalls.Enqueue(clonedWall);
         spawnedObjects.Add(clonedWall);
         return clonedWall;
     }
@@ -89,6 +96,20 @@ public class Spawner : MonoBehaviour
     float getYForCeilingWall(GameObject wall)
     {
         return maxSpawnLocation - (wall.transform.localScale.y / 2);
+    }
+
+    void checkPassedWall()
+    {
+        if (upcomingWalls.Peek().transform.position.x < notBird.transform.position.x)
+        {
+            upcomingWalls.Dequeue();
+            wallsPassed++;
+        }
+    }
+
+    public int getWallsPassed()
+    {
+        return wallsPassed;
     }
 
     void destroyWalls()
